@@ -10,6 +10,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import { register } from './controllers/auth.controller.js';
+import { addItemToPurchaseList } from './controllers/item.controller.js';
 import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 
@@ -40,10 +41,16 @@ const upload = multer({ storage });
 
 // ROUTES WITH FILES
 app.post('/auth/register', upload.single('picture'), register);
+app.post(
+  '/purchaseList/:purchaseListId/addItem',
+  upload.single('picture'),
+  addItemToPurchaseList
+);
 
 // OTHER ROUTES
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
+app.use('/purchase-lists', userRoutes);
 
 // MONGOOSE SETUP
 const PORT = process.env.PORT || 6001;
