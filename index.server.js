@@ -13,6 +13,7 @@ import { register } from './controllers/auth.controller.js';
 import { addItemToPurchaseList } from './controllers/item.controller.js';
 import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
+import vendorRoutes from './routes/vendor.routes.js';
 
 // CONFIGURATIONS
 const __filename = fileURLToPath(import.meta.url);
@@ -51,6 +52,7 @@ app.post(
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/purchase-lists', userRoutes);
+app.use('/vendors', vendorRoutes);
 
 // MONGOOSE SETUP
 const PORT = process.env.PORT || 6001;
