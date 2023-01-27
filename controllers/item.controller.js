@@ -1,12 +1,21 @@
 import Item from '../models/Item.js';
 import PurchaseList from '../models/PurchaseList.js';
+import Vendor from '../models/Vendor.js';
+import { Categories } from '../enums/categories.js';
 
+// const categories = require('../enums/categories.js');
 // Add an item to a purchase list
 export const addItemToPurchaseList = async (req, res) => {
   try {
     const { name, picturePath, category, vendor, price, quantity } = req.body;
     const { purchaseListId } = req.params;
+    const vendorX = await Vendor.findById(vendor);
     const totalPrice = price * quantity;
+
+    // check if category is a valid category
+    if (!Categories[category]) {
+      return res.status(400).json({ message: 'Invalid category' });
+    }
 
     // create new item
     const newItem = new Item({
@@ -24,6 +33,9 @@ export const addItemToPurchaseList = async (req, res) => {
     purchaseList.items.push(savedItem._id);
     purchaseList.purchaseListTotal += totalPrice;
 
+    // update vendors item array with new item
+    vendorX.items.push(savedItem._id);
+    await vendorX.save();
     // save the updated purchase list
     const updatedPurchaseList = await purchaseList.save();
 

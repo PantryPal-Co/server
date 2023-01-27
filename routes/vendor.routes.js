@@ -11,7 +11,7 @@ import {
 const router = express.Router();
 
 // Add a vendor
-router.post('/add-vendor', verifyToken, createVendor);
+router.post('/addVendor', verifyToken, createVendor);
 
 // Get all vendors
 router.get('/', verifyToken, getVendors);

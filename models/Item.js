@@ -10,9 +10,8 @@ const ItemSchema = new Schema({
     type: String,
   },
   category: {
-    type: Schema.Types.ObjectId,
-    ref: 'Category',
-    // required: true,
+    type: String,
+    required: true,
   },
   vendor: {
     type: Schema.Types.ObjectId,
