@@ -7,7 +7,8 @@ import { Categories } from '../enums/categories.js';
 // Add an item to a purchase list
 export const addItemToPurchaseList = async (req, res) => {
   try {
-    const { name, picturePath, category, vendor, price, quantity } = req.body;
+    const { name, picturePath, category, vendor, price, quantity, checked } =
+      req.body;
     const { purchaseListId } = req.params;
     const vendorX = await Vendor.findById(vendor);
     const totalPrice = price * quantity;
@@ -25,13 +26,15 @@ export const addItemToPurchaseList = async (req, res) => {
       vendor,
       price,
       quantity,
+      checked,
       totalPrice: totalPrice,
     });
     const savedItem = await newItem.save();
 
     const purchaseList = await PurchaseList.findById(purchaseListId);
     purchaseList.items.push(savedItem._id);
-    purchaseList.purchaseListTotal += totalPrice;
+
+    purchaseList.purchaseListTotal += checked ? totalPrice : 0;
 
     // update vendors item array with new item
     vendorX.items.push(savedItem._id);
