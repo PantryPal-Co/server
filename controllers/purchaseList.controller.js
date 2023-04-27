@@ -1,9 +1,10 @@
 import PurchaseList from '../models/PurchaseList.js';
 import User from '../models/User.js';
 import { isValidObjectId } from 'mongoose';
+import Item from '../models/Item.js';
 
 // READ
-// Get details
+// Get purchase list details
 export const getPurchaseListDetails = async (req, res) => {
   try {
     const { id } = req.params;
@@ -12,7 +13,10 @@ export const getPurchaseListDetails = async (req, res) => {
       return res.status(400).json({ message: 'Invalid purchase list id' });
     }
     // Find purchase list by id
-    const purchaseList = await PurchaseList.findById(id);
+    const purchaseList = await PurchaseList.findById(id).populate({
+      path: 'items',
+      select: 'name quantity price category checked',
+    });
     // Handle purchase list not found
     if (!purchaseList) {
       return res.status(404).json({ message: 'Purchase list not found' });
@@ -25,8 +29,11 @@ export const getPurchaseListDetails = async (req, res) => {
 
 // get purchase lists
 export const getPurchaseLists = async (req, res) => {
+  const selectedMonth = parseInt(req.query.month);
   try {
     const { userId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
 
     // Validate userId param
     if (!isValidObjectId(userId)) {
@@ -39,14 +46,57 @@ export const getPurchaseLists = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Find purchase lists by user id with pagination
+    const purchaseListsQuery = await PurchaseList.find({
+      user: user._id,
+    })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 }); // Sorting by descending order of creation date
+
     // map and return appropriate properties from the purchase lists
-    const purchaseLists = user.purchaseLists.map((purchaseList) => {
+    const purchaseLists = purchaseListsQuery.map((purchaseList) => {
       return {
+        _id: purchaseList._id,
         name: purchaseList.name,
         purchaseListTotal: purchaseList.purchaseListTotal,
+        createdAt: purchaseList.createdAt,
       };
     });
-    res.status(200).json(purchaseLists);
+
+    // Calculate grand total for all purchase lists
+    const grandTotal = user.purchaseLists.reduce(
+      (total, list) => total + list.purchaseListTotal,
+      0
+    );
+
+    // Calculate total for the selected month
+    const totalThisMonth = user.purchaseLists.reduce((total, list) => {
+      if (new Date(list.createdAt).getMonth() === selectedMonth) {
+        return total + list.purchaseListTotal;
+      }
+      return total;
+    }, 0);
+
+    // Count the total number of purchase lists
+    const totalPurchaseLists = await PurchaseList.countDocuments({
+      user: user._id,
+    });
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalPurchaseLists / limit);
+
+    // Return paginated purchase lists with meta data
+    res.status(200).json({
+      purchaseLists,
+      pageInfo: {
+        currentPage: page,
+        totalPages,
+        totalItems: totalPurchaseLists,
+      },
+      grandTotal,
+      totalThisMonth,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -83,6 +133,64 @@ export const createPurchaseList = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+
+// Update a purchase list
+
+export const updatePurchaseList = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, items, purchaseListTotal } = req.body;
+
+    let purchaseList;
+    try {
+      purchaseList = await PurchaseList.findById(id);
+    } catch (error) {
+      return res.status(500).json({ error: 'Error finding purchase list' });
+    }
+
+    if (!purchaseList) {
+      return res.status(404).json({ error: 'Purchase list not found' });
+    }
+
+    if (req.user.id !== purchaseList.user.toString()) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    if (name) {
+      purchaseList.name = name;
+    }
+
+    for (const updatedItem of items) {
+      await Item.findByIdAndUpdate(updatedItem._id, updatedItem);
+    }
+
+    purchaseList.items = items.map((item) => item._id);
+    purchaseList.purchaseListTotal = purchaseListTotal;
+
+    let updatedPurchaseList;
+    try {
+      updatedPurchaseList = await purchaseList.save();
+    } catch (error) {
+      return res.status(500).json({ error: 'Error saving purchase list' });
+    }
+
+    let populatedPurchaseList;
+    try {
+      populatedPurchaseList = await PurchaseList.findById(
+        updatedPurchaseList._id
+      ).populate([{ path: 'items', path: 'user' }]);
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ error: 'Error populating purchase list fields' });
+    }
+
+    res.json(populatedPurchaseList);
+  } catch (error) {
+    console.error('Error in updatePurchaseList:', error);
+    res.status(500).json({ error: 'Error updating purchase list' });
   }
 };
 

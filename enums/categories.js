@@ -3,4 +3,7 @@ export const Categories = {
   vegetables: 'Vegetables',
   toiletries: 'Toiletries',
   sanitary: 'Sanitary',
+  electricals: 'Electricals',
+  spices: 'Spices',
+  meats: 'Meats',
 };

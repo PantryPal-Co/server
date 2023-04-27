@@ -4,7 +4,7 @@ import {
   getPurchaseListDetails,
   getPurchaseLists,
   createPurchaseList,
-  //   updatePurchaseList,
+  updatePurchaseList,
   deletePurchaseList,
 } from '../controllers/purchaseList.controller.js';
 import { deleteItemFromPurchaseList } from '../controllers/item.controller.js';
@@ -14,13 +14,14 @@ const router = express.Router();
 // READ
 router.get('/:id', verifyToken, getUser);
 router.get('/:id/listdetail', verifyToken, getPurchaseListDetails);
-router.get('/purchase-lists/:userId', verifyToken, getPurchaseLists);
+router.get('/purchase-lists/:userId', getPurchaseLists);
 
 // CREATE
 router.post('/create', verifyToken, createPurchaseList);
 
 // UPDATE
 router.patch('/update/:id', verifyToken, updateUser);
+router.patch('/update-purchase-list/:id', verifyToken, updatePurchaseList);
 
 // DELETE
 // Remember to add verifyToken

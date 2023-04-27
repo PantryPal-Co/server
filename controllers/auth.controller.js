@@ -21,6 +21,7 @@ export const register = async (req, res) => {
       password: passwordHash,
       picturePath,
       purchaseLists: [],
+      role: 'admin',
       createdAt: new Date(),
     });
     const savedUser = await newUser.save();

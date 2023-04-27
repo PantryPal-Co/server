@@ -35,6 +35,11 @@ const UserSchema = new Schema(
         ref: 'PurchaseList',
       },
     ],
+    role: {
+      type: String,
+      enum: ['user', 'admin', 'superadmin'],
+      default: 'admin',
+    },
     createdAt: {
       type: Date,
       default: Date.now(),

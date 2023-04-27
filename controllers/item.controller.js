@@ -34,6 +34,7 @@ export const addItemToPurchaseList = async (req, res) => {
     const purchaseList = await PurchaseList.findById(purchaseListId);
     purchaseList.items.push(savedItem._id);
 
+    // important to check for if an item is checked. That's when it will be added to the list
     purchaseList.purchaseListTotal += checked ? totalPrice : 0;
 
     // update vendors item array with new item

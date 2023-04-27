@@ -1,6 +1,7 @@
 import { isValidObjectId } from 'mongoose';
 import User from '../models/User.js';
 
+// Get user
 export const getUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -20,6 +21,8 @@ export const getUser = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+// Update User
 
 export const updateUser = async (req, res) => {
   try {
